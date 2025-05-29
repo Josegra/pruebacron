@@ -24,7 +24,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install pandas lxml html5lib
+          pip install pandas lxml html5lib unidecode
 
       - name: Ejecutar script standard_scrape.py
         run: python standard_scrape.py
@@ -36,7 +36,7 @@ jobs:
           # Puedes cambiar el mensaje a algo como "chore: Actualizar datos de jugadores (CSV) [skip ci]"
           commit_message: "регулярно обновляется [skip ci] datos de jugadores (CSV)"
           branch: main # O tu rama principal
-          file_pattern: ./data/big5_player_stats.csv
+          file_pattern: ./data/big5_player_stats_standard.csv
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
           commit_author: GitHub Actions Bot <actions@github.com>
@@ -46,5 +46,5 @@ jobs:
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: estadisticas-jugadores-big5
-      #     path: ./data/big5_player_stats.csv
+      #     path: ./data/big5_player_stats_standard.csv
       #     if-no-files-found: error
