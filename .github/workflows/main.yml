@@ -1,4 +1,4 @@
-name: Ejecutar Scraper de FBref y Guardar CSV
+name: Ejecutar Scraper de FBref y Guardar CSV en Repositorio
 
 on:
   schedule:
@@ -7,16 +7,25 @@ on:
   workflow_dispatch: # Permite la ejecución manual
 
 jobs:
-  scrape_and_save:
+  scrape_and_commit: # Puedes renombrar el job si quieres
     runs-on: ubuntu-latest
+    # Permisos necesarios para que la acción pueda hacer push al repositorio
+    permissions:
+      contents: write # Permiso para escribir en el contenido del repositorio
+
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
+        with:
+          # Necesario si la acción de commit va a pushear a una rama protegida
+          # y estás usando un token diferente al GITHUB_TOKEN por defecto.
+          # Para este caso, el GITHUB_TOKEN por defecto con el permiso 'contents: write' debería ser suficiente.
+          # token: ${{ secrets.GITHUB_TOKEN }} # O un PAT si es necesario
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # Puedes usar 3.x o una versión específica
+          python-version: '3.10'
 
       - name: Instalar dependencias
         run: |
@@ -24,11 +33,26 @@ jobs:
           pip install pandas lxml html5lib
 
       - name: Ejecutar script standard_scrape.py
-        run: python standard_scrape.py
+        run: python standard_scrape.py # Esto crea ./data/big5_player_stats.csv
 
-      - name: Subir artefacto CSV
-        uses: actions/upload-artifact@v4
+      - name: Commit y Push del archivo CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: estadisticas-jugadores-big5
-          path: ./data/big5_player_stats.csv
-          if-no-files-found: error
+          commit_message: " регулярно обновляется [skip ci] datos de jugadores (CSV)" # Mensaje del commit
+          branch: main # O la rama a la que quieres hacer push (ej. tu rama principal)
+          # Opcional: puedes usar ${{ github.ref_name }} para la rama actual si el workflow corre en diferentes ramas
+          file_pattern: ./data/big5_player_stats.csv # El archivo específico a commitear
+          # Opcional: si quieres añadir todos los archivos CSV en la carpeta data: data/*.csv
+          # Opcional: si quieres añadir todo en la carpeta data: data/*
+          commit_user_name: GitHub Actions Bot # Nombre del autor del commit
+          commit_user_email: actions@github.com # Email del autor del commit
+          commit_author: GitHub Actions Bot <actions@github.com> # Autor completo
+
+      # Ya no es estrictamente necesario si el objetivo principal es tenerlo en el repo,
+      # pero puedes mantenerlo si también quieres un artefacto descargable.
+      # - name: Subir artefacto CSV (Opcional)
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: estadisticas-jugadores-big5
+      #     path: ./data/big5_player_stats.csv
+      #     if-no-files-found: error
