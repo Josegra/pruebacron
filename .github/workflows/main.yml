@@ -2,29 +2,28 @@ name: Ejecutar Scraper de FBref y Guardar CSV en Repositorio
 
 on:
   schedule:
-    # Ejecuta todos los días a las 10:30 UTC (que son las 12:30 CEST)
+    # Ejecuta todos los días a las 10:30 UTC (12:30 CEST si estás en UTC+2)
     - cron: '30 10 * * *'
-  workflow_dispatch: # Permite la ejecución manual
+  workflow_dispatch:
 
 jobs:
   scrape_and_commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Permiso para escribir en el contenido del repositorio
-
+      contents: write
     steps:
       - name: Checkout del repositorio
-        uses: actions/checkout@v4 # Eliminada la sección 'with:' de aquí
+        uses: actions/checkout@v4
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.10' # O la versión que prefieras
 
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install pandas lxml html5lib unidecode
+          pip install pandas lxml html5lib # Solo estas dependencias son necesarias
 
       - name: Ejecutar script standard_scrape.py
         run: python standard_scrape.py
@@ -32,19 +31,9 @@ jobs:
       - name: Commit y Push del archivo CSV
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          # Mensaje del commit. "[skip ci]" evita bucles de CI si tienes otros workflows.
-          # Puedes cambiar el mensaje a algo como "chore: Actualizar datos de jugadores (CSV) [skip ci]"
-          commit_message: "регулярно обновляется [skip ci] datos de jugadores (CSV)"
+          commit_message: "chore: Actualizar datos de jugadores (CSV) [skip ci]"
           branch: main # O tu rama principal
-          file_pattern: ./data/big5_player_stats_standard.csv
+          file_pattern: ./data/big5_player_stats.csv # Asegúrate que coincida con lo que genera tu script
           commit_user_name: GitHub Actions Bot
           commit_user_email: actions@github.com
           commit_author: GitHub Actions Bot <actions@github.com>
-
-      # Opcional: Descomenta si también quieres un artefacto descargable
-      # - name: Subir artefacto CSV (Opcional)
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: estadisticas-jugadores-big5
-      #     path: ./data/big5_player_stats_standard.csv
-      #     if-no-files-found: error
